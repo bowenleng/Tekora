@@ -8,23 +8,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.nukollodda.tekora.Tekora;
-import net.nukollodda.tekora.menu.ElectricFurnaceMenu;
+import net.nukollodda.tekora.menu.BatteryMenu;
 
-public class ElectricFurnaceScreen extends AbstractContainerScreen<ElectricFurnaceMenu> {
+public class BatteryScreen extends AbstractContainerScreen<BatteryMenu> {
     private static final ResourceLocation TEXTURE =
-            new ResourceLocation(Tekora.MODID, "textures/screens/electric_blaster_gui.png");
+            new ResourceLocation(Tekora.MODID, "textures/screens/battery_gui.png");
 
-    public ElectricFurnaceScreen(ElectricFurnaceMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title);
+    public BatteryScreen(BatteryMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
     }
 
     @Override
-    protected void init() {
-        super.init();
-    }
-
-    @Override
-    protected void renderBg(GuiGraphics pGraphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics pGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0f,1.0f,1.0f,1.0f);
         RenderSystem.setShaderTexture(0, TEXTURE);
@@ -33,18 +28,11 @@ public class ElectricFurnaceScreen extends AbstractContainerScreen<ElectricFurna
 
         pGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight); // renders texture
 
-        renderProgressArrow(pGraphics, x, y);
-        renderElectricityAmount(pGraphics, x, y);
+        renderEnergy(pGraphics, x, y);
     }
 
-    private void renderProgressArrow(GuiGraphics pGraphics, int x, int y) {
-        if (menu.isCrafting()) {
-            pGraphics.blit(TEXTURE, x + 79, y + 27, 176, 0, menu.getScaledProgress(), 17);
-        }
-    }
-
-    private void renderElectricityAmount(GuiGraphics pGraphics, int x, int y) {
-        pGraphics.blit(TEXTURE, x + 22, y + 22 + (48 - menu.getEnergy()), 176, 17 + (48 - menu.getEnergy()), 6, menu.getEnergy());
+    private void renderEnergy(GuiGraphics pGraphics, int x, int y) {
+        pGraphics.blit(TEXTURE, x + 22, y + 22 + (48 - menu.getEnergy()), 176, 48 - menu.getEnergy(), 6, menu.getEnergy());
     }
 
     @Override
