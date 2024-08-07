@@ -1,5 +1,5 @@
 # Tekora
-![](https://github.com/NukolLodda/Tekora/blob/main/logo.png)Technologic Ores And More!
+![](https://github.com/bowenleng/Tekora/blob/main/logo.png)Technologic Ores And More!
 
 Tekora is a tech based mod for Minecraft and a base mod for future projects.
 <br>
