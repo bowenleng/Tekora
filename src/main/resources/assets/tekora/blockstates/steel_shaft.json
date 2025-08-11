@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "axis=x,gear_type=none": {
+      "model": "tekora:block/steel_shaft",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,gear_type=brass": {
+      "model": "tekora:block/steel_shaft_brass_gear",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,gear_type=steel": {
+      "model": "tekora:block/steel_shaft_steel_gear",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,gear_type=wooden": {
+      "model": "tekora:block/steel_shaft_wooden_gear",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y,gear_type=none": {
+      "model": "tekora:block/steel_shaft"
+    },
+    "axis=y,gear_type=brass": {
+      "model": "tekora:block/steel_shaft_brass_gear"
+    },
+    "axis=y,gear_type=steel": {
+      "model": "tekora:block/steel_shaft_steel_gear"
+    },
+    "axis=y,gear_type=wooden": {
+      "model": "tekora:block/steel_shaft_wooden_gear"
+    },
+    "axis=z,gear_type=none": {
+      "model": "tekora:block/steel_shaft",
+      "x": 90
+    },
+    "axis=z,gear_type=brass": {
+      "model": "tekora:block/steel_shaft_brass_gear",
+      "x": 90
+    },
+    "axis=z,gear_type=steel": {
+      "model": "tekora:block/steel_shaft_steel_gear",
+      "x": 90
+    },
+    "axis=z,gear_type=wooden": {
+      "model": "tekora:block/steel_shaft_wooden_gear",
+      "x": 90
+    }
+  }
+}
