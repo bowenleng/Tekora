@@ -6,15 +6,13 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
 
 public enum GearType implements StringRepresentable {
-    BRASS("brass", false),
-    NONE("none", false),
-    STEEL("steel", false),
-    WOODEN("wooden", true);
+    BRASS(false),
+    NONE( false),
+    STEEL(false),
+    WOODEN(true);
 
-    private final String name;
     private final boolean flammable;
-    GearType(String name, boolean flammable) {
-        this.name = name;
+    GearType(boolean flammable) {
         this.flammable = flammable;
     }
 
@@ -24,7 +22,7 @@ public enum GearType implements StringRepresentable {
 
     @Override
     public String getSerializedName() {
-        return name;
+        return toString().toLowerCase();
     }
 
     public static Item itemFromType(GearType type) {

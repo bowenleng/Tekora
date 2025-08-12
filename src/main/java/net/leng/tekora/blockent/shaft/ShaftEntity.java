@@ -3,13 +3,13 @@ package net.leng.tekora.blockent.shaft;
 import net.leng.tekora.block.GearType;
 import net.leng.tekora.block.shaft.ShaftBlock;
 import net.leng.tekora.blockent.TekoraBlockEntities;
+import net.leng.tekora.blockent.generators.mech.AbstractTekoraRotationalEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -22,22 +22,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 
-public abstract class ShaftEntity extends BlockEntity {
-    private double rpm = 0;
+public abstract class ShaftEntity extends AbstractTekoraRotationalEntity {
     protected ShaftEntity(BlockEntityType<?> eventType, BlockPos blockPos, BlockState blockState) {
         super(eventType, blockPos, blockState);
     }
-
-    @Override
-    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
-        super.saveAdditional(pTag, pRegistries);
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
-        super.loadAdditional(pTag, pRegistries);
-    }
-
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
         // basic idea, if a block is oriented on the axis, measure its velocity
@@ -55,7 +43,8 @@ public abstract class ShaftEntity extends BlockEntity {
                         if (shaft.rpm == 0 && rpm != 0) shaft.rpm = rpm;
                         else if (rpm == 0 && shaft.rpm != 0) rpm = shaft.rpm;
                         else {
-                            if ((rpm > 0 && shaft.rpm > 0) || (rpm < 0 && shaft.rpm < 0)) {
+                            if ((rpm >= 0 && shaft.rpm >= 0) || (rpm <= 0 && shaft.rpm <= 0)) {
+                                // a better mathematical model is needed
                                 double avg = (rpm + shaft.rpm) / 2;
                                 rpm = avg;
                                 shaft.rpm = avg;
@@ -80,9 +69,8 @@ public abstract class ShaftEntity extends BlockEntity {
                                 }
                                 if (blockItem != null) {
                                     level.addFreshEntity(new ItemEntity(level, blockPos.getX(), blockPos.getY(), blockPos.getZ(),
-                                            new ItemStack(blockItem, 1), 0, 0, 0));
+                                            new ItemStack(blockItem, 1), 0, 0, 0)); // todo looks unnatural, fix it
                                 }
-
                             }
                         }
                         // todo allow math to calculate for axial shaft momentum
@@ -113,18 +101,18 @@ public abstract class ShaftEntity extends BlockEntity {
                                 if (shaft.rpm == 0 && rpm != 0) shaft.rpm = -rpm;
                                 else if (rpm == 0 && shaft.rpm != 0) rpm = -shaft.rpm;
                                 else {
-                                    if ((rpm > 0 && shaft.rpm < 0) || (rpm < 0 && shaft.rpm > 0)) {
+                                    if ((rpm >= 0 && shaft.rpm <= 0) || (rpm <= 0 && shaft.rpm >= 0)) {
                                         double total = Math.abs(shaft.rpm) + Math.abs(rpm);
                                         // this is overly simplistic, needs modification
                                         shaft.rpm = total;
                                         rpm = total;
-                                    } else {
+                                    } else if (rpm != -shaft.rpm) {
                                         GearType neighType = neighState.getValue(ShaftBlock.GEAR_TYPE);
                                         GearType blockType = blockState.getValue(ShaftBlock.GEAR_TYPE);
                                         Item neighItem = GearType.itemFromType(neighType);
                                         Item blockItem = GearType.itemFromType(blockType);
-                                        neighState.setValue(ShaftBlock.GEAR_TYPE, GearType.NONE);
-                                        blockState.setValue(ShaftBlock.GEAR_TYPE, GearType.NONE);
+                                        level.setBlockAndUpdate(neighPos, neighState.setValue(ShaftBlock.GEAR_TYPE, GearType.NONE));
+                                        level.setBlockAndUpdate(blockPos, blockState.setValue(ShaftBlock.GEAR_TYPE, GearType.NONE));
                                         level.playSound(null, neighPos, neighType.isFlammable() ? SoundEvents.WOOD_BREAK : SoundEvents.METAL_BREAK, SoundSource.BLOCKS);
                                         level.playSound(null, blockPos, blockType.isFlammable() ? SoundEvents.WOOD_BREAK : SoundEvents.METAL_BREAK, SoundSource.BLOCKS);
                                         if (neighItem != null) {

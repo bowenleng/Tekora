@@ -8,8 +8,11 @@ import net.leng.tekora.blockent.shaft.ShaftEntity;
 import net.leng.tekora.item.GearItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -58,15 +61,15 @@ public abstract class ShaftBlock extends BaseEntityBlock {
 
 //    private static final VoxelShape SHAPE_X_LARGE = Shapes.join(
 //            SHAFT_X,
-//            box(7, -16, -16, 9, 32, 32),
+//            box(7, -8, -8, 9, 24, 24),
 //            (b1, b2) -> b1 || b2);
 //    private static final VoxelShape SHAPE_Y_LARGE = Shapes.join(
 //            SHAFT_Y,
-//            box(-16, 7, -16, 32, 9, 32),
+//            box(-8, 7, -8, 24, 9, 24),
 //            (b1, b2) -> b1 || b2);
 //    private static final VoxelShape SHAPE_Z_LARGE = Shapes.join(
 //            SHAFT_Z,
-//            box(-16, -16, 7, 32, 32, 9),
+//            box(-8, -8, 7, 24, 24, 9),
 //            (b1, b2) -> b1 || b2);
 
     protected ShaftBlock(String name) {
@@ -82,7 +85,7 @@ public abstract class ShaftBlock extends BaseEntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext pContext) {
         return this.defaultBlockState()
-                .setValue(AXIS, pContext.getNearestLookingDirection().getAxis()); // todo remove if things don't work
+                .setValue(AXIS, pContext.getNearestLookingDirection().getAxis());
     }
 
     @Override
@@ -125,29 +128,39 @@ public abstract class ShaftBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {
-        if (!pLevel.isClientSide) {
+        if (!pLevel.isClientSide && pState.hasProperty(GEAR_TYPE)) {
             Item stackItem = pStack.getItem();
             if (stackItem instanceof GearItem gear) {
-                pState.setValue(GEAR_TYPE, gear.getGearType());
-                pLevel.setBlockAndUpdate(pPos, pState);
-                pStack.shrink(1);
-            } else if (pState.hasProperty(GEAR_TYPE)) {
+                GearType stateType = pState.getValue(GEAR_TYPE);
+                GearType itemType = gear.getGearType();
+                if (stateType.equals(GearType.NONE)) {
+                    pLevel.setBlockAndUpdate(pPos, pState.setValue(GEAR_TYPE, itemType));
+                    pStack.shrink(1);
+                } else if (stateType.equals(itemType) && pStack.getCount() < stackItem.getDefaultMaxStackSize()) {
+                    pLevel.setBlockAndUpdate(pPos, pState.setValue(GEAR_TYPE, GearType.NONE));
+                    pStack.setCount(pStack.getCount() + 1);
+                } else {
+                    Item gearItem = GearType.itemFromType(stateType);
+                    if (gearItem != null) {
+                        pLevel.addFreshEntity(new ItemEntity(pLevel, pPos.getX(), pPos.getY(), pPos.getZ(),
+                                new ItemStack(gearItem, 1), 0, 0, 0)); // todo, looks unattural, fix
+                        pLevel.setBlockAndUpdate(pPos, pState.setValue(GEAR_TYPE, itemType));
+                    }
+                }
+                pLevel.playSound(null, pPos, itemType.isFlammable() ? SoundEvents.WOOD_BREAK : SoundEvents.ARMOR_EQUIP_IRON.get(), SoundSource.BLOCKS);
+            } else {
                 GearType type = pState.getValue(GEAR_TYPE);
                 if (pStack.isEmpty() && type != GearType.NONE) {
                     Item item = GearType.itemFromType(type);
                     if (item != null) {
                         pPlayer.setItemInHand(pHand, new ItemStack(item, 1));
-                        pState.setValue(GEAR_TYPE, GearType.NONE);
-                        pLevel.setBlockAndUpdate(pPos, pState);
+                        pLevel.playSound(null, pPos, type.isFlammable() ? SoundEvents.WOOD_BREAK : SoundEvents.ARMOR_EQUIP_IRON.get(), SoundSource.BLOCKS);
+                        pLevel.setBlockAndUpdate(pPos, pState.setValue(GEAR_TYPE, GearType.NONE));
                     }
-                } else if (GearType.itemMatchesType(stackItem, type) && pStack.getCount() < stackItem.getDefaultMaxStackSize()) {
-                    pStack.setCount(pStack.getCount() + 1);
-                    pState.setValue(GEAR_TYPE, GearType.NONE);
-                    pLevel.setBlockAndUpdate(pPos, pState);
                 }
             }
         }
-        return InteractionResult.PASS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
