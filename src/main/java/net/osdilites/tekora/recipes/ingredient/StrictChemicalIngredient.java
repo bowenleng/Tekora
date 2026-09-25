@@ -2,16 +2,12 @@ package net.osdilites.tekora.recipes.ingredient;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
-import net.osdilites.tekora.data.IonValue;
 
-// todo, figure out how gas and dissolution behavior works
-public record ChemicalIngredient(Either<Ingredient, FluidIngredient> input) {
+public record StrictChemicalIngredient(Either<Ingredient, FluidIngredient> input) {
     public static final Codec<ChemicalIngredient> CODEC = Codec.either(
             Ingredient.CODEC,
             FluidIngredient.CODEC
@@ -40,12 +36,4 @@ public record ChemicalIngredient(Either<Ingredient, FluidIngredient> input) {
 
     public Ingredient asItem() { return input.left().orElseThrow(); }
     public FluidIngredient asFluid() { return input.right().orElseThrow(); }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof ChemicalIngredient(Either<Ingredient, FluidIngredient> input1)) {
-            return input.equals(input1);
-        }
-        return false;
-    }
 }
